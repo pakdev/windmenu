@@ -1,12 +1,18 @@
 #lang racket/gui
 
+(require ffi/unsafe)
 (require "win32api.rkt")
+
+(define hotkey 1000)
+(define null-pointer (_cpointer/null 'NULL))
 
 ; Create the menu bar so it's the full width of the desktop
 (define screen-rect (make-RECT 0 0 0 0))
 (void (SystemParametersInfoA #x0030 0 screen-rect 0))
 
-(define frame (new frame%
+(define frame (new (class frame% (super-new)
+                     (define/augment (on-close)
+                       (UnregisterHotKey null-pointer hotkey)))
                    [label "Windmenu"]
                    [width (- (RECT-right screen-rect)
                              (RECT-left screen-rect))]
@@ -27,5 +33,9 @@
                         [stretchable-width #f]
                         [min-width 200]
                         [callback (lambda (sender event) (displayln (send sender get-value)))]))
+
+;(define hwnd (send frame get-client-handle))
+(define ret (RegisterHotKey null-pointer hotkey #x0001 #x44))
+(displayln ret)
 
 (send frame show #t)
