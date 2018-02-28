@@ -4,22 +4,24 @@
 (require "win32api.rkt")
 
 (define hotkey 1000)
-(define null-pointer (_cpointer/null 'NULL))
+(define screen-rect (make-RECT 0 0 0 0))
+(define msg-pt (make-POINT 0 0))
+(define win-msg (make-MSG #f 0 0 0 0 msg-pt))
 
 ; Create the menu bar so it's the full width of the desktop
-(define screen-rect (make-RECT 0 0 0 0))
 (void (SystemParametersInfoA #x0030 0 screen-rect 0))
 
 (define frame (new (class frame% (super-new)
                      (define/augment (on-close)
-                       (UnregisterHotKey null-pointer hotkey)))
+                       ;(displayln "Exiting...")
+                       (UnregisterHotKey #f hotkey)))
                    [label "Windmenu"]
                    [width (- (RECT-right screen-rect)
                              (RECT-left screen-rect))]
                    [height 30]
                    [x 0]
                    [y 0]
-                   [style '(no-resize-border no-caption no-system-menu)]))
+                   [style '(no-resize-border no-system-menu)])) ;no-caption
 
 (define panel (new horizontal-panel%
                    [parent frame]
@@ -35,7 +37,6 @@
                         [callback (lambda (sender event) (displayln (send sender get-value)))]))
 
 ;(define hwnd (send frame get-client-handle))
-(define ret (RegisterHotKey null-pointer hotkey #x0001 #x44))
-(displayln ret)
+(define ret (RegisterHotKey #f hotkey #x0001 #x44)) ; Hotkey = Alt-d
 
 (send frame show #t)
